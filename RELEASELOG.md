@@ -7,3 +7,5 @@
 - add kerberos auth example
 
 - change module name to pyhive_connection
+
+- connection method return hive connection instead of cursor
