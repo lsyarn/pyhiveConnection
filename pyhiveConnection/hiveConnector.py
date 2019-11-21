@@ -6,16 +6,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def connection(zk_host, znode_name='/hiveserver2', service_keyword='serverUri', **kwargs):
+def connection(zk_host, zk_path='/hiveserver2', service_keyword='serverUri', **kwargs):
     """
     connect hive by pyhive and return cursor
     :param zk_host: zookeeper host:port, delimited by `,`
-    :param znode_name: hiveserver2 node_name in zookeeper, default `/hiveserver2`
+    :param zk_path: Path of node to list, default `/hiveserver2`
     :param service_keyword: keyword for hiveserver2 server uri, default `serverUri`
     :param kwargs: kwargs passed to pyhive.hive.connect
     :return:
     """
-    host_list = _discovery_thrift_service_host(zk_host, znode_name, service_keyword)
+    host_list = _discovery_thrift_service_host(zk_host, zk_path, service_keyword)
     host_length = len(host_list)
     random.seed()
     is_connected = False
@@ -40,18 +40,18 @@ def connection(zk_host, znode_name='/hiveserver2', service_keyword='serverUri', 
     return cursor
 
 
-def _discovery_thrift_service_host(zk_host, znode_name='/hiveserver2', service_keyword='serverUri'):
+def _discovery_thrift_service_host(zk_host, zk_path='/hiveserver2', service_keyword='serverUri'):
     """
     discovery the thrfit service host list
     :param zk_host: zookeeper host:port, delimited by `,`
-    :param znode_name: hiveserver2 node_name in zookeeper, default `/hiveserver2`
+    :param zk_path: Path of node to list, default `/hiveserver2`
     :param service_keyword: keyword for hiveserver2 server uri, default `serverUri`
     :return: host:port list for hiveserver2
     """
     zk_client = KazooClient(hosts=zk_host)
     zk_client.start()
     # get the children name of zonde
-    result = zk_client.get_children(znode_name)
+    result = zk_client.get_children(zk_path)
     # result is something like ['serverUri=salve91:10000;version=1.2.1000.2.6.3.0-235;sequence=0000000458']
     zk_client.stop()
     host_list = []
