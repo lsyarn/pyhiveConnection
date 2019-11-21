@@ -8,23 +8,23 @@ logger = logging.getLogger(__name__)
 
 def connection(zk_host, zk_path='/hiveserver2', service_keyword='serverUri', **kwargs):
     """
-    connect hive by pyhive and return cursor
+    connect hive by pyhive and return conn
     :param zk_host: zookeeper host:port, delimited by `,`
     :param zk_path: Path of node to list, default `/hiveserver2`
     :param service_keyword: keyword for hiveserver2 server uri, default `serverUri`
     :param kwargs: kwargs passed to pyhive.hive.connect
-    :return:
+    :return: conn
     """
     host_list = _discovery_thrift_service_host(zk_host, zk_path, service_keyword)
     host_length = len(host_list)
     random.seed()
     is_connected = False
-    cursor = None
+    conn = None
     while is_connected is False and host_length > 0:
         index = random.randint(0, host_length - 1)
         host_str = host_list.pop(index).split(":")
         try:
-            cursor = hive.connect(host=host_str[0], port=host_str[1], **kwargs).cursor()
+            conn = hive.connect(host=host_str[0], port=host_str[1], **kwargs)
             is_connected = True
         except Exception as e:
             logger.debug(e)
@@ -35,9 +35,9 @@ def connection(zk_host, zk_path='/hiveserver2', service_keyword='serverUri', **k
                 logger.error("ERROR:Can not connect hiveserver2, please check the connection config and the hiveserver")
                 return 0
         host_length -= 1
-    if cursor is None:
+    if conn is None:
         raise Exception("No available HiveServer2 Connection")
-    return cursor
+    return conn
 
 
 def _discovery_thrift_service_host(zk_host, zk_path='/hiveserver2', service_keyword='serverUri'):
